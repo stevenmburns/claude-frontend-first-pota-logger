@@ -17,7 +17,7 @@ const td: React.CSSProperties = {
 }
 
 function utcTime(iso: string): string {
-  return new Date(iso).toISOString().slice(11, 16) + 'Z'
+  return new Date(iso).toISOString().slice(11, 16)
 }
 
 export function QsoTable({ qsos, onDeleted }: QsoTableProps) {
