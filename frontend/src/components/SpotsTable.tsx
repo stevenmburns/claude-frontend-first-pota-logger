@@ -32,7 +32,7 @@ export function SpotsTable({ spots, onSelectSpot }: SpotsTableProps) {
             <th style={th}>Freq</th>
             <th style={th}>Band</th>
             <th style={th}>Mode</th>
-            <th style={th}>Time</th>
+            <th style={th}>Time (UTC)</th>
             <th style={th}>Comments</th>
           </tr>
         </thead>
@@ -66,7 +66,7 @@ export function SpotsTable({ spots, onSelectSpot }: SpotsTableProps) {
                 <td style={{ ...td, color: '#cba6f7' }}>{band}</td>
                 <td style={{ ...td, color: '#94e2d5' }}>{spot.mode}</td>
                 <td style={{ ...td, color: '#a6adc8', fontSize: '0.78rem' }}>
-                  {formatSpotTimeUtc(spot.spotTime)}Z
+                  {formatSpotTimeUtc(spot.spotTime)}
                 </td>
                 <td style={{ ...td, color: '#a6adc8', fontSize: '0.78rem', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {spot.comments}

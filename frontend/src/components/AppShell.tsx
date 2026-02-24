@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { SpotsPanel } from './SpotsPanel'
 import { QsoForm } from './QsoForm'
 import { QsoTable } from './QsoTable'
@@ -28,6 +28,25 @@ export function AppShell({
 }: AppShellProps) {
   const [selectedSpot, setSelectedSpot] = useState<AnnotatedSpot | null>(null)
   const [showSettings, setShowSettings] = useState(false)
+  const [splitPct, setSplitPct] = useState(66.7)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const onDividerMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    const onMouseMove = (ev: MouseEvent) => {
+      const container = containerRef.current
+      if (!container) return
+      const { left, width } = container.getBoundingClientRect()
+      const pct = ((ev.clientX - left) / width) * 100
+      setSplitPct(Math.min(Math.max(pct, 20), 85))
+    }
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+    }
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+  }, [])
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#1e1e2e', color: '#cdd6f4' }}>
@@ -64,9 +83,9 @@ export function AppShell({
       </header>
 
       {/* Two-column body */}
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 400px', overflow: 'hidden' }}>
+      <div ref={containerRef} style={{ flex: 1, display: 'grid', gridTemplateColumns: `${splitPct}% 4px 1fr`, overflow: 'hidden' }}>
         {/* Left: Spots */}
-        <div style={{ borderRight: '1px solid #333', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '0.5rem' }}>
+        <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '0.5rem' }}>
           <h2 style={{ margin: '0 0 0.5rem', fontSize: '1rem', color: '#cba6f7' }}>Active Spots</h2>
           <SpotsPanel
             spots={spots}
@@ -76,6 +95,17 @@ export function AppShell({
             onRefresh={onRefreshSpots}
           />
         </div>
+
+        {/* Draggable divider */}
+        <div
+          onMouseDown={onDividerMouseDown}
+          style={{
+            cursor: 'col-resize', background: '#333', width: 4,
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#585b70' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#333' }}
+        />
 
         {/* Right: Log form + QSO table */}
         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0.5rem' }}>
