@@ -3,6 +3,7 @@ import { SpotsFilter } from './SpotsFilter'
 import { SpotsTable } from './SpotsTable'
 import type { AnnotatedSpot } from '../hooks/useSpots'
 import { freqKhzToBand } from '../utils/bandMap'
+import { sortSpots } from '../utils/sortSpots'
 
 interface SpotsPanelProps {
   spots: AnnotatedSpot[]
@@ -16,11 +17,11 @@ export function SpotsPanel({ spots, loading, error, onSelectSpot, onRefresh }: S
   const [bandFilter, setBandFilter] = useState('')
   const [modeFilter, setModeFilter] = useState('')
 
-  const filtered = spots.filter(s => {
+  const filtered = sortSpots(spots.filter(s => {
     if (bandFilter && freqKhzToBand(parseFloat(s.frequency)) !== bandFilter) return false
     if (modeFilter && s.mode.toUpperCase() !== modeFilter.toUpperCase()) return false
     return true
-  })
+  }))
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
