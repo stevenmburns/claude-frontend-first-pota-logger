@@ -52,7 +52,7 @@ export default function App() {
 
   return (
     <AppShell
-      sessionId={session.id}
+      session={session}
       callsign={settings.operatorCallsign}
       spots={spots}
       spotsLoading={spotsLoading}

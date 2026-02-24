@@ -44,6 +44,16 @@ export async function pushUnsyncedQsos(): Promise<void> {
   try {
     const db = await getDb()
     const unsyncedQsos = await db.getUnsyncedQsos()
+    // Group by session so we upsert each session once before its QSOs
+    const sessionIds = [...new Set(unsyncedQsos.map(q => q.hunt_session_id))]
+    for (const sessionId of sessionIds) {
+      try {
+        const session = await db.getSessionById(sessionId)
+        if (session) await syncSession(session)
+      } catch {
+        // skip
+      }
+    }
     for (const qso of unsyncedQsos) {
       try {
         const ok = await syncQso(qso)
