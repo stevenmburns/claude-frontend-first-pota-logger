@@ -1,5 +1,6 @@
 import type { AnnotatedSpot } from '../hooks/useSpots'
 import { freqKhzToBand } from '../utils/bandMap'
+import { formatSpotTimeUtc } from '../utils/spotTime'
 
 interface SpotsTableProps {
   spots: AnnotatedSpot[]
@@ -65,7 +66,7 @@ export function SpotsTable({ spots, onSelectSpot }: SpotsTableProps) {
                 <td style={{ ...td, color: '#cba6f7' }}>{band}</td>
                 <td style={{ ...td, color: '#94e2d5' }}>{spot.mode}</td>
                 <td style={{ ...td, color: '#a6adc8', fontSize: '0.78rem' }}>
-                  {new Date(spot.spotTime).toISOString().slice(11, 16)}Z
+                  {formatSpotTimeUtc(spot.spotTime)}Z
                 </td>
                 <td style={{ ...td, color: '#a6adc8', fontSize: '0.78rem', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {spot.comments}
