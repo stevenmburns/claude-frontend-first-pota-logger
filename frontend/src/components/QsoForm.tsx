@@ -5,11 +5,13 @@ import { freqMhzToBand, freqKhzToBand } from '../utils/bandMap'
 import { defaultRst } from '../utils/rstDefaults'
 import { useParkLookup } from '../hooks/useParkLookup'
 import type { AnnotatedSpot } from '../hooks/useSpots'
+import type { HuntSession } from '../db/types'
+import { syncNewQso } from '../services/supabaseSync'
 
 const MODES = ['SSB', 'CW', 'FT8', 'FT4', 'AM', 'FM', 'RTTY', 'PSK31']
 
 interface QsoFormProps {
-  sessionId: string
+  session: HuntSession
   selectedSpot: AnnotatedSpot | null
   onQsoLogged: () => void
 }
@@ -41,7 +43,7 @@ const labelStyle: React.CSSProperties = {
   display: 'block', color: '#a6adc8', fontSize: '0.78rem', marginBottom: 2,
 }
 
-export function QsoForm({ sessionId, selectedSpot, onQsoLogged }: QsoFormProps) {
+export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
   const [form, setForm] = useState<FormState>(emptyForm())
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -97,9 +99,9 @@ export function QsoForm({ sessionId, selectedSpot, onQsoLogged }: QsoFormProps) 
     try {
       const db = await getDb()
       const now = new Date().toISOString()
-      const result = await db.insertQso({
+      const qso = {
         id: generateUuid(),
-        hunt_session_id: sessionId,
+        hunt_session_id: session.id,
         park_reference: form.parkReference.trim().toUpperCase(),
         callsign: form.callsign.trim().toUpperCase(),
         frequency: parseFloat(form.frequency) || 0,
@@ -109,13 +111,15 @@ export function QsoForm({ sessionId, selectedSpot, onQsoLogged }: QsoFormProps) 
         rst_received: form.rstReceived,
         timestamp: now,
         created_at: now,
-      })
+      }
+      const result = await db.insertQso(qso)
 
       if (result.duplicate) {
         setError('Duplicate QSO: already logged this station/park/band combination.')
         return
       }
 
+      syncNewQso({ ...qso, synced: 0 }, session)
       setForm(emptyForm())
       setSuccess(true)
       setTimeout(() => setSuccess(false), 2000)

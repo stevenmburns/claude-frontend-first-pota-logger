@@ -4,12 +4,12 @@ import { QsoForm } from './QsoForm'
 import { QsoTable } from './QsoTable'
 import { SettingsPanel } from './SettingsPanel'
 import type { AnnotatedSpot } from '../hooks/useSpots'
-import type { Qso } from '../db/types'
+import type { Qso, HuntSession } from '../db/types'
 import type { Settings } from '../hooks/useSettings'
 import { downloadAdif } from '../services/adifExport'
 
 interface AppShellProps {
-  sessionId: string
+  session: HuntSession
   callsign: string
   spots: AnnotatedSpot[]
   spotsLoading: boolean
@@ -23,7 +23,7 @@ interface AppShellProps {
 }
 
 export function AppShell({
-  sessionId, callsign, spots, spotsLoading, spotsError, onRefreshSpots,
+  session, callsign, spots, spotsLoading, spotsError, onRefreshSpots,
   qsos, onQsoLogged, onQsoDeleted, settings, onUpdateSettings,
 }: AppShellProps) {
   const [selectedSpot, setSelectedSpot] = useState<AnnotatedSpot | null>(null)
@@ -89,7 +89,7 @@ export function AppShell({
               )}
             </h2>
             <QsoForm
-              sessionId={sessionId}
+              session={session}
               selectedSpot={selectedSpot}
               onQsoLogged={onQsoLogged}
             />

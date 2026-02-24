@@ -27,6 +27,14 @@ export class DbWorker {
     return rows[0] ?? null
   }
 
+  async getSessionById(id: string): Promise<HuntSession | null> {
+    const rows = db.selectObjects(
+      'SELECT * FROM hunt_sessions WHERE id = ?',
+      [id]
+    ) as HuntSession[]
+    return rows[0] ?? null
+  }
+
   async createSession(id: string, sessionDate: string, createdAt: string): Promise<HuntSession> {
     db.exec(
       'INSERT OR IGNORE INTO hunt_sessions (id, session_date, created_at) VALUES (?, ?, ?)',
