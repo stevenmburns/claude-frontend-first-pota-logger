@@ -25,6 +25,19 @@ CREATE TABLE IF NOT EXISTS qsos (
   UNIQUE (hunt_session_id, callsign, park_reference, band)
 );
 
+-- ── Functions ────────────────────────────────────────────────────────────────
+
+-- Returns the distinct set of park references the user has ever hunted.
+-- Used by the frontend to highlight never-visited parks in the spots list.
+CREATE OR REPLACE FUNCTION get_worked_parks()
+RETURNS SETOF TEXT
+LANGUAGE sql STABLE
+AS $$
+  SELECT DISTINCT park_reference FROM qsos WHERE park_reference IS NOT NULL;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_worked_parks() TO anon;
+
 -- ── Row Level Security ──────────────────────────────────────────────────────
 -- Anonymous access: anyone with the project anon key can read and write.
 -- Tighten these policies later if you add Supabase Auth.

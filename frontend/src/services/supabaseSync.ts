@@ -70,12 +70,14 @@ export async function pushUnsyncedQsos(): Promise<void> {
 export async function fetchWorkedParks(url: string, key: string): Promise<Set<string>> {
   if (!url || !key) return new Set()
   try {
-    const resp = await fetch(`${url}/rest/v1/qsos?select=park_reference`, {
-      headers: { apikey: key, Authorization: `Bearer ${key}`, Range: '0-9999' },
+    const resp = await fetch(`${url}/rest/v1/rpc/get_worked_parks`, {
+      method: 'POST',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: '{}',
     })
     if (!resp.ok) return new Set()
-    const rows: { park_reference: string }[] = await resp.json()
-    return new Set(rows.map(r => r.park_reference).filter(Boolean))
+    const parks: string[] = await resp.json()
+    return new Set(parks.filter(Boolean))
   } catch {
     return new Set()
   }
