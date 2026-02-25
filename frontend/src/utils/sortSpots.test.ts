@@ -16,6 +16,7 @@ function makeSpot(frequency: string, mode: string, spotTime: string): AnnotatedS
     spotTime,
     expire: 0,
     hunted: false,
+    newPark: false,
   }
 }
 

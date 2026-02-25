@@ -67,6 +67,20 @@ export async function pushUnsyncedQsos(): Promise<void> {
   }
 }
 
+export async function fetchWorkedParks(url: string, key: string): Promise<Set<string>> {
+  if (!url || !key) return new Set()
+  try {
+    const resp = await fetch(`${url}/rest/v1/qsos?select=park_reference`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}`, Range: '0-9999' },
+    })
+    if (!resp.ok) return new Set()
+    const rows: { park_reference: string }[] = await resp.json()
+    return new Set(rows.map(r => r.park_reference).filter(Boolean))
+  } catch {
+    return new Set()
+  }
+}
+
 export async function syncNewQso(qso: Qso, session: HuntSession): Promise<void> {
   if (!supabase) return
   try {

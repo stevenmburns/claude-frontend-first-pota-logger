@@ -16,6 +16,7 @@ const spot: AnnotatedSpot = {
   spotTime: '2026-02-24T18:30:00',
   expire: 0,
   hunted: false,
+  newPark: false,
 }
 
 describe('SpotsTable', () => {

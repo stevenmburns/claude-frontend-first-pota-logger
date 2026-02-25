@@ -40,14 +40,14 @@ export function SpotsTable({ spots, onSelectSpot }: SpotsTableProps) {
           {spots.map(spot => {
             const freqNum = parseFloat(spot.frequency)
             const band = freqKhzToBand(freqNum)
-            const rowBg = spot.hunted ? '#1e3a1e' : undefined
+            const rowBg = spot.hunted ? '#1e3a1e' : spot.newPark ? '#2e2a1a' : undefined
             return (
               <tr
                 key={spot.spotId}
                 onClick={() => onSelectSpot(spot)}
                 style={{ background: rowBg, cursor: 'pointer' }}
                 onMouseEnter={e => {
-                  if (!spot.hunted) (e.currentTarget as HTMLElement).style.background = '#252535'
+                  if (!spot.hunted && !spot.newPark) (e.currentTarget as HTMLElement).style.background = '#252535'
                 }}
                 onMouseLeave={e => {
                   (e.currentTarget as HTMLElement).style.background = rowBg ?? ''
@@ -57,7 +57,9 @@ export function SpotsTable({ spots, onSelectSpot }: SpotsTableProps) {
                   {spot.hunted ? '✓ ' : ''}{spot.activator}
                 </td>
                 <td style={{ ...td, color: '#cdd6f4' }}>
-                  <span style={{ fontWeight: 600 }}>{spot.reference}</span>
+                  <span style={{ fontWeight: 600, color: spot.newPark && !spot.hunted ? '#f9e2af' : '#cdd6f4' }}>
+                    {spot.newPark && !spot.hunted ? '★ ' : ''}{spot.reference}
+                  </span>
                   <span style={{ color: '#a6adc8', fontSize: '0.78rem', marginLeft: 4 }}>
                     {spot.parkName}
                   </span>
