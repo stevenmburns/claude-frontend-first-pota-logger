@@ -1,22 +1,24 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSettings } from './hooks/useSettings'
 import { useTodaySession } from './hooks/useTodaySession'
 import { useQsos } from './hooks/useQsos'
 import { useSpots } from './hooks/useSpots'
 import { SetupPrompt } from './components/SetupPrompt'
 import { AppShell } from './components/AppShell'
-import { initSupabase, pushUnsyncedQsos } from './services/supabaseSync'
+import { initSupabase, pushUnsyncedQsos, fetchWorkedParks } from './services/supabaseSync'
 
 export default function App() {
   const { settings, updateSettings } = useSettings()
   const { session, loading: sessionLoading, error: sessionError } = useTodaySession()
   const { qsos, refresh: refreshQsos } = useQsos(session?.id ?? null)
-  const { spots, loading: spotsLoading, error: spotsError, refresh: refreshSpots } = useSpots(qsos)
+  const [workedParks, setWorkedParks] = useState<Set<string>>(new Set())
+  const { spots, loading: spotsLoading, error: spotsError, refresh: refreshSpots } = useSpots(qsos, workedParks)
 
-  // Init Supabase and push any unsynced rows on startup
+  // Init Supabase, push any unsynced rows, and fetch worked parks on startup
   useEffect(() => {
     initSupabase(settings.supabaseUrl, settings.supabaseKey)
     pushUnsyncedQsos()
+    fetchWorkedParks(settings.supabaseUrl, settings.supabaseKey).then(setWorkedParks)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.supabaseUrl, settings.supabaseKey])
 

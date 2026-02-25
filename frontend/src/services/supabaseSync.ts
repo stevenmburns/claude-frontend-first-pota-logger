@@ -67,6 +67,22 @@ export async function pushUnsyncedQsos(): Promise<void> {
   }
 }
 
+export async function fetchWorkedParks(url: string, key: string): Promise<Set<string>> {
+  if (!url || !key) return new Set()
+  try {
+    const resp = await fetch(`${url}/rest/v1/rpc/get_worked_parks`, {
+      method: 'POST',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: '{}',
+    })
+    if (!resp.ok) return new Set()
+    const parks: string[] | null = await resp.json()
+    return new Set((parks ?? []).filter(Boolean))
+  } catch {
+    return new Set()
+  }
+}
+
 export async function syncNewQso(qso: Qso, session: HuntSession): Promise<void> {
   if (!supabase) return
   try {

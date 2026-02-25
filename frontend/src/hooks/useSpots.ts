@@ -4,13 +4,14 @@ import type { Qso } from '../db/types'
 
 export interface AnnotatedSpot extends PotaSpot {
   hunted: boolean
+  newPark: boolean
 }
 
 function buildHuntedSet(qsos: Qso[]): Set<string> {
   return new Set(qsos.map(q => `${q.callsign}:${q.park_reference}`))
 }
 
-export function useSpots(qsos: Qso[]): {
+export function useSpots(qsos: Qso[], workedParks: Set<string>): {
   spots: AnnotatedSpot[]
   loading: boolean
   error: Error | null
@@ -33,6 +34,7 @@ export function useSpots(qsos: Qso[]): {
         setSpots(raw.map(s => ({
           ...s,
           hunted: hunted.has(`${s.activator}:${s.reference}`),
+          newPark: !workedParks.has(s.reference),
         })))
         setError(null)
       })
@@ -46,16 +48,17 @@ export function useSpots(qsos: Qso[]): {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick])
 
-  // Re-annotate when QSOs change without re-fetching
+  // Re-annotate when QSOs or workedParks change without re-fetching
   useEffect(() => {
     setSpots(prev => {
       const hunted = buildHuntedSet(qsos)
       return prev.map(s => ({
         ...s,
         hunted: hunted.has(`${s.activator}:${s.reference}`),
+        newPark: !workedParks.has(s.reference),
       }))
     })
-  }, [qsos])
+  }, [qsos, workedParks])
 
   // Auto-refresh every 60 seconds
   useEffect(() => {
