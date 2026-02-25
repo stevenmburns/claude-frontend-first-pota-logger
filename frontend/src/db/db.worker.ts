@@ -10,7 +10,7 @@ export class DbWorker {
   async init(): Promise<void> {
     if (db) return
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sqlite3: any = await sqlite3InitModule({ print: console.log, printErr: console.error })
+    const sqlite3: any = await (sqlite3InitModule as any)({ print: console.log, printErr: console.error })
     if (!sqlite3.installOpfsSAHPoolVfs) {
       throw new Error('opfs-sahpool VFS not available in this context')
     }
