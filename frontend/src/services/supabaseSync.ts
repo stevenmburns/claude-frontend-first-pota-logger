@@ -67,28 +67,6 @@ export async function pushUnsyncedQsos(): Promise<void> {
   }
 }
 
-export async function fetchWorkedParks(url: string, key: string): Promise<Set<string>> {
-  const localParks = await getDb()
-    .then(db => db.getWorkedParks())
-    .catch(() => [] as string[])
-
-  if (!url || !key) return new Set(localParks)
-
-  try {
-    const resp = await fetch(`${url}/rest/v1/rpc/get_worked_parks`, {
-      method: 'POST',
-      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: '{}',
-    })
-    if (!resp.ok) return new Set(localParks)
-    const parks: string[] | null = await resp.json()
-    const remoteParks = (parks ?? []).filter(Boolean)
-    return new Set([...localParks, ...remoteParks])
-  } catch {
-    return new Set(localParks)
-  }
-}
-
 export async function pullAllFromSupabase(): Promise<void> {
   if (!supabase) return
   try {
