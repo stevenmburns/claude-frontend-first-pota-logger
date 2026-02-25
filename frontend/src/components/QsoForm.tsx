@@ -244,12 +244,12 @@ export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', marginBottom: 2 }}>
               <label style={{ ...labelStyle, marginBottom: 0 }}>Callsign *</label>
-              {user && <span style={{ fontSize: '0.75rem', color: '#a6e3a1' }}>{user.name}</span>}
+              {user?.name && <span style={{ fontSize: '0.75rem', color: '#a6e3a1' }}>{user.name}</span>}
             </div>
             <input
-              style={{ ...inputStyle, textTransform: 'uppercase' }}
+              style={inputStyle}
               value={form.callsign}
-              onChange={e => handleChange('callsign', e.target.value)}
+              onChange={e => handleChange('callsign', e.target.value.toUpperCase())}
               placeholder="W1AW"
             />
           </div>
