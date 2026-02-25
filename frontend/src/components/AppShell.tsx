@@ -56,7 +56,7 @@ export function AppShell({
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <h1 style={{ margin: 0, fontSize: '1.2rem', color: '#89b4fa' }}>POTA Logger</h1>
+          <h1 style={{ margin: 0, fontSize: '1.2rem', color: '#89b4fa' }}>POTA Hunt Log</h1>
           <span style={{ color: '#a6adc8', fontSize: '0.9rem' }}>{callsign}</span>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
