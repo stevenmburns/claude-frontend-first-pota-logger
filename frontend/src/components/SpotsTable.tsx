@@ -28,6 +28,7 @@ export function SpotsTable({ spots, onSelectSpot }: SpotsTableProps) {
         <thead>
           <tr>
             <th style={th}>Activator</th>
+            <th style={{ ...th, width: '1.2rem', padding: '0.4rem 0.2rem' }}></th>
             <th style={th}>Park</th>
             <th style={th}>Freq</th>
             <th style={th}>Band</th>
@@ -56,9 +57,12 @@ export function SpotsTable({ spots, onSelectSpot }: SpotsTableProps) {
                 <td style={{ ...td, color: spot.hunted ? '#a6e3a1' : '#89b4fa', fontWeight: 600 }}>
                   {spot.hunted ? '✓ ' : ''}{spot.activator}
                 </td>
+                <td style={{ ...td, padding: '0.35rem 0.2rem', textAlign: 'center', color: '#f9e2af' }}>
+                  {spot.newPark && !spot.hunted ? '★' : ''}
+                </td>
                 <td style={{ ...td, color: '#cdd6f4' }}>
                   <span style={{ fontWeight: 600, color: spot.newPark && !spot.hunted ? '#f9e2af' : '#cdd6f4' }}>
-                    {spot.newPark && !spot.hunted ? '★ ' : ''}{spot.reference}
+                    {spot.reference}
                   </span>
                   <span style={{ color: '#a6adc8', fontSize: '0.78rem', marginLeft: 4 }}>
                     {spot.parkName}
