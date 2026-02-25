@@ -7,9 +7,9 @@ function adifField(tag: string, value: string | number): string {
 
 export function generateAdif(qsos: Qso[]): string {
   const header = [
-    'ADIF Export from POTA Logger',
+    'ADIF Export from POTA Hunt Log',
     adifField('ADIF_VER', '3.1.4'),
-    adifField('PROGRAMID', 'POTA Logger'),
+    adifField('PROGRAMID', 'POTA Hunt Log'),
     '<EOH>',
     '',
   ].join('\n')

@@ -22,7 +22,7 @@ export function SetupPrompt({ onSave }: SetupPromptProps) {
         background: '#1e1e2e', border: '1px solid #444', borderRadius: 8,
         padding: '2rem', minWidth: 320, color: '#cdd6f4',
       }}>
-        <h2 style={{ marginTop: 0 }}>Welcome to POTA Logger</h2>
+        <h2 style={{ marginTop: 0 }}>Welcome to POTA Hunt Log</h2>
         <p style={{ color: '#a6adc8' }}>Enter your operator callsign to get started.</p>
         <form onSubmit={handleSubmit}>
           <label style={{ display: 'block', marginBottom: 4 }}>Your Callsign</label>
