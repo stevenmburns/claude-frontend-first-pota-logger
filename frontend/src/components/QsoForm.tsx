@@ -193,18 +193,16 @@ export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
         {/* Park Reference column: input + park history below */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
           <div>
-            <label style={labelStyle}>Park Reference *</label>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', marginBottom: 2 }}>
+              <label style={{ ...labelStyle, marginBottom: 0 }}>Park *</label>
+              {park && <span style={{ fontSize: '0.75rem', color: '#a6e3a1' }}>{park.name}</span>}
+            </div>
             <input
               style={inputStyle}
               value={form.parkReference}
               onChange={e => handleChange('parkReference', e.target.value)}
               placeholder="K-1234"
             />
-            {park && (
-              <div style={{ fontSize: '0.75rem', color: '#a6e3a1', marginTop: 2 }}>
-                {park.name}
-              </div>
-            )}
           </div>
           {form.parkReference.trim() && (
             <div style={{
