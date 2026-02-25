@@ -14,12 +14,13 @@ export default function App() {
   const [workedParks, setWorkedParks] = useState<Set<string>>(new Set())
   const { spots, loading: spotsLoading, error: spotsError, refresh: refreshSpots } = useSpots(qsos, workedParks)
 
-  // Init Supabase, push any unsynced rows, and fetch worked parks on startup
+  // Init Supabase, push any unsynced rows, sync down, then load worked parks
   useEffect(() => {
     initSupabase(settings.supabaseUrl, settings.supabaseKey)
     pushUnsyncedQsos()
-    pullAllFromSupabase()
-    fetchWorkedParks(settings.supabaseUrl, settings.supabaseKey).then(setWorkedParks)
+    pullAllFromSupabase().then(() =>
+      fetchWorkedParks(settings.supabaseUrl, settings.supabaseKey).then(setWorkedParks)
+    )
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.supabaseUrl, settings.supabaseKey])
 

@@ -101,6 +101,14 @@ export class DbWorker {
     ) as Qso[]
   }
 
+  async getWorkedParks(): Promise<string[]> {
+    const rows = db.selectObjects(
+      'SELECT DISTINCT park_reference FROM qsos WHERE park_reference IS NOT NULL',
+      []
+    ) as { park_reference: string }[]
+    return rows.map(r => r.park_reference)
+  }
+
   async upsertQsosFromRemote(sessions: HuntSession[], qsos: Omit<Qso, 'synced'>[]): Promise<void> {
     db.exec('BEGIN')
     try {
