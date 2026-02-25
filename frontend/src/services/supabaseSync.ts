@@ -76,8 +76,8 @@ export async function fetchWorkedParks(url: string, key: string): Promise<Set<st
       body: '{}',
     })
     if (!resp.ok) return new Set()
-    const parks: string[] = await resp.json()
-    return new Set(parks.filter(Boolean))
+    const parks: string[] | null = await resp.json()
+    return new Set((parks ?? []).filter(Boolean))
   } catch {
     return new Set()
   }

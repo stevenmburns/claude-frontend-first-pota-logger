@@ -29,11 +29,15 @@ CREATE TABLE IF NOT EXISTS qsos (
 
 -- Returns the distinct set of park references the user has ever hunted.
 -- Used by the frontend to highlight never-visited parks in the spots list.
+-- DROP first because RETURNS type changed (SETOF TEXT -> JSON);
+-- CREATE OR REPLACE cannot change return type.
+DROP FUNCTION IF EXISTS get_worked_parks();
 CREATE OR REPLACE FUNCTION get_worked_parks()
-RETURNS SETOF TEXT
+RETURNS JSON
 LANGUAGE sql STABLE
 AS $$
-  SELECT DISTINCT park_reference FROM qsos WHERE park_reference IS NOT NULL;
+  SELECT json_agg(park_reference)
+  FROM (SELECT DISTINCT park_reference FROM qsos WHERE park_reference IS NOT NULL) t;
 $$;
 
 GRANT EXECUTE ON FUNCTION get_worked_parks() TO anon;
