@@ -101,6 +101,13 @@ export class DbWorker {
     ) as Qso[]
   }
 
+  async getQsosByPark(parkRef: string): Promise<Qso[]> {
+    return db.selectObjects(
+      'SELECT * FROM qsos WHERE park_reference = ? ORDER BY timestamp DESC',
+      [parkRef]
+    ) as Qso[]
+  }
+
   async getWorkedParks(): Promise<string[]> {
     const rows = db.selectObjects(
       'SELECT DISTINCT park_reference FROM qsos WHERE park_reference IS NOT NULL',

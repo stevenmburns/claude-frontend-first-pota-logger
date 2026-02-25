@@ -50,6 +50,8 @@ export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
   const [success, setSuccess] = useState(false)
   const [callsignHistory, setCallsignHistory] = useState<Qso[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [parkHistory, setParkHistory] = useState<Qso[]>([])
+  const [parkHistoryLoading, setParkHistoryLoading] = useState(false)
 
   const { park } = useParkLookup(form.parkReference)
 
@@ -77,6 +79,31 @@ export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
       setHistoryLoading(false)
     }
   }, [form.callsign])
+
+  // Look up previous QSOs for the park reference being entered
+  useEffect(() => {
+    const parkRef = form.parkReference.trim().toUpperCase()
+    if (!parkRef) {
+      setParkHistory([])
+      return
+    }
+    setParkHistoryLoading(true)
+    const timer = setTimeout(async () => {
+      try {
+        const db = await getDb()
+        const history = await db.getQsosByPark(parkRef)
+        setParkHistory(history)
+      } catch {
+        setParkHistory([])
+      } finally {
+        setParkHistoryLoading(false)
+      }
+    }, 400)
+    return () => {
+      clearTimeout(timer)
+      setParkHistoryLoading(false)
+    }
+  }, [form.parkReference])
 
   // Prefill from selected spot
   // POTA API returns frequency in kHz; form stores MHz for ADIF compatibility
@@ -149,6 +176,7 @@ export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
       syncNewQso({ ...qso, synced: 0 }, session)
       setForm(emptyForm())
       setCallsignHistory([])
+      setParkHistory([])
       setSuccess(true)
       setTimeout(() => setSuccess(false), 2000)
       onQsoLogged()
@@ -161,63 +189,100 @@ export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-        <div>
-          <label style={labelStyle}>Park Reference *</label>
-          <input
-            style={inputStyle}
-            value={form.parkReference}
-            onChange={e => handleChange('parkReference', e.target.value)}
-            placeholder="K-1234"
-          />
-          {park && (
-            <div style={{ fontSize: '0.75rem', color: '#a6e3a1', marginTop: 2 }}>
-              {park.name}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', alignItems: 'start' }}>
+        {/* Park Reference column: input + park history below */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+          <div>
+            <label style={labelStyle}>Park Reference *</label>
+            <input
+              style={inputStyle}
+              value={form.parkReference}
+              onChange={e => handleChange('parkReference', e.target.value)}
+              placeholder="K-1234"
+            />
+            {park && (
+              <div style={{ fontSize: '0.75rem', color: '#a6e3a1', marginTop: 2 }}>
+                {park.name}
+              </div>
+            )}
+          </div>
+          {form.parkReference.trim() && (
+            <div style={{
+              background: '#1e1e2e', border: '1px solid #45475a', borderRadius: 4,
+              padding: '0.4rem 0.6rem', fontSize: '0.75rem',
+            }}>
+              {parkHistoryLoading ? (
+                <span style={{ color: '#a6adc8' }}>Looking up {form.parkReference.trim().toUpperCase()}…</span>
+              ) : parkHistory.length === 0 ? (
+                <span style={{ color: '#6c7086' }}>No previous QSOs at {form.parkReference.trim().toUpperCase()}</span>
+              ) : (
+                <>
+                  <div style={{ color: '#a6adc8', marginBottom: '0.3rem' }}>
+                    Previous QSOs at <span style={{ color: '#cba6f7' }}>{form.parkReference.trim().toUpperCase()}</span>
+                    {' '}({parkHistory.length})
+                  </div>
+                  <div style={{ maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                    {parkHistory.map(q => (
+                      <div key={q.id} style={{ display: 'flex', gap: '0.6rem', color: '#cdd6f4' }}>
+                        <span style={{ color: '#6c7086', minWidth: '5rem' }}>
+                          {new Date(q.timestamp).toLocaleDateString()}
+                        </span>
+                        <span style={{ color: '#89b4fa' }}>{q.callsign}</span>
+                        <span style={{ color: '#94e2d5' }}>{q.band}</span>
+                        <span style={{ color: '#89dceb' }}>{q.mode}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
-        <div>
-          <label style={labelStyle}>Callsign *</label>
-          <input
-            style={{ ...inputStyle, textTransform: 'uppercase' }}
-            value={form.callsign}
-            onChange={e => handleChange('callsign', e.target.value)}
-            placeholder="W1AW"
-          />
-        </div>
-      </div>
 
-      {form.callsign.trim() && (
-        <div style={{
-          background: '#1e1e2e', border: '1px solid #45475a', borderRadius: 4,
-          padding: '0.4rem 0.6rem', fontSize: '0.75rem',
-        }}>
-          {historyLoading ? (
-            <span style={{ color: '#a6adc8' }}>Looking up {form.callsign.trim().toUpperCase()}…</span>
-          ) : callsignHistory.length === 0 ? (
-            <span style={{ color: '#6c7086' }}>No previous QSOs with {form.callsign.trim().toUpperCase()}</span>
-          ) : (
-            <>
-              <div style={{ color: '#a6adc8', marginBottom: '0.3rem' }}>
-                Previous QSOs with <span style={{ color: '#89b4fa' }}>{form.callsign.trim().toUpperCase()}</span>
-                {' '}({callsignHistory.length})
-              </div>
-              <div style={{ maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-                {callsignHistory.map(q => (
-                  <div key={q.id} style={{ display: 'flex', gap: '0.6rem', color: '#cdd6f4' }}>
-                    <span style={{ color: '#6c7086', minWidth: '5rem' }}>
-                      {new Date(q.timestamp).toLocaleDateString()}
-                    </span>
-                    <span style={{ color: '#cba6f7' }}>{q.park_reference}</span>
-                    <span style={{ color: '#94e2d5' }}>{q.band}</span>
-                    <span style={{ color: '#89dceb' }}>{q.mode}</span>
+        {/* Callsign column: input + callsign history below */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+          <div>
+            <label style={labelStyle}>Callsign *</label>
+            <input
+              style={{ ...inputStyle, textTransform: 'uppercase' }}
+              value={form.callsign}
+              onChange={e => handleChange('callsign', e.target.value)}
+              placeholder="W1AW"
+            />
+          </div>
+          {form.callsign.trim() && (
+            <div style={{
+              background: '#1e1e2e', border: '1px solid #45475a', borderRadius: 4,
+              padding: '0.4rem 0.6rem', fontSize: '0.75rem',
+            }}>
+              {historyLoading ? (
+                <span style={{ color: '#a6adc8' }}>Looking up {form.callsign.trim().toUpperCase()}…</span>
+              ) : callsignHistory.length === 0 ? (
+                <span style={{ color: '#6c7086' }}>No previous QSOs with {form.callsign.trim().toUpperCase()}</span>
+              ) : (
+                <>
+                  <div style={{ color: '#a6adc8', marginBottom: '0.3rem' }}>
+                    Previous QSOs with <span style={{ color: '#89b4fa' }}>{form.callsign.trim().toUpperCase()}</span>
+                    {' '}({callsignHistory.length})
                   </div>
-                ))}
-              </div>
-            </>
+                  <div style={{ maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                    {callsignHistory.map(q => (
+                      <div key={q.id} style={{ display: 'flex', gap: '0.6rem', color: '#cdd6f4' }}>
+                        <span style={{ color: '#6c7086', minWidth: '5rem' }}>
+                          {new Date(q.timestamp).toLocaleDateString()}
+                        </span>
+                        <span style={{ color: '#cba6f7' }}>{q.park_reference}</span>
+                        <span style={{ color: '#94e2d5' }}>{q.band}</span>
+                        <span style={{ color: '#89dceb' }}>{q.mode}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
-      )}
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
         <div>
