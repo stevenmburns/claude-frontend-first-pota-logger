@@ -4,6 +4,7 @@ import { generateUuid } from '../utils/uuid'
 import { freqMhzToBand, freqKhzToBand } from '../utils/bandMap'
 import { defaultRst } from '../utils/rstDefaults'
 import { useParkLookup } from '../hooks/useParkLookup'
+import { useCallsignLookup } from '../hooks/useCallsignLookup'
 import type { AnnotatedSpot } from '../hooks/useSpots'
 import type { HuntSession, Qso } from '../db/types'
 import { syncNewQso } from '../services/supabaseSync'
@@ -54,6 +55,7 @@ export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
   const [parkHistoryLoading, setParkHistoryLoading] = useState(false)
 
   const { park } = useParkLookup(form.parkReference)
+  const { user } = useCallsignLookup(form.callsign)
 
   // Look up previous QSOs for the callsign being entered
   useEffect(() => {
@@ -240,7 +242,10 @@ export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
         {/* Callsign column: input + callsign history below */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
           <div>
-            <label style={labelStyle}>Callsign *</label>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', marginBottom: 2 }}>
+              <label style={{ ...labelStyle, marginBottom: 0 }}>Callsign *</label>
+              {user && <span style={{ fontSize: '0.75rem', color: '#a6e3a1' }}>{user.name}</span>}
+            </div>
             <input
               style={{ ...inputStyle, textTransform: 'uppercase' }}
               value={form.callsign}

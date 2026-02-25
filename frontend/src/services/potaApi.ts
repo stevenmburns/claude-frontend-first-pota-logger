@@ -33,3 +33,15 @@ export async function lookupPark(ref: string): Promise<PotaPark | null> {
   if (!resp.ok) throw new Error(`POTA park lookup failed: ${resp.status}`)
   return resp.json()
 }
+
+export interface PotaUser {
+  callsign: string
+  name: string
+}
+
+export async function lookupUser(callsign: string): Promise<PotaUser | null> {
+  const resp = await fetch(`${BASE}/stats/user/${encodeURIComponent(callsign)}`)
+  if (resp.status === 404) return null
+  if (!resp.ok) throw new Error(`POTA user lookup failed: ${resp.status}`)
+  return resp.json()
+}
