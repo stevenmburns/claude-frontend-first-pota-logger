@@ -19,9 +19,11 @@ export default function App() {
   useEffect(() => {
     initSupabase(settings.supabaseUrl, settings.supabaseKey)
     pushUnsyncedQsos()
-    pullAllFromSupabase().then(() =>
-      getDb().then(db => db.getWorkedParks()).then(parks => setWorkedParks(new Set(parks)))
-    )
+    ;(async () => {
+      await pullAllFromSupabase()
+      const db = await getDb()
+      setWorkedParks(new Set(await db.getWorkedParks()))
+    })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.supabaseUrl, settings.supabaseKey])
 
