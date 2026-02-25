@@ -93,6 +93,42 @@ export class DbWorker {
   async markQsoSynced(id: string): Promise<void> {
     db.exec('UPDATE qsos SET synced = 1 WHERE id = ?', { bind: [id] })
   }
+
+  async getQsosByCallsign(callsign: string): Promise<Qso[]> {
+    return db.selectObjects(
+      'SELECT * FROM qsos WHERE callsign = ? ORDER BY timestamp DESC',
+      [callsign]
+    ) as Qso[]
+  }
+
+  async upsertQsosFromRemote(sessions: HuntSession[], qsos: Omit<Qso, 'synced'>[]): Promise<void> {
+    db.exec('BEGIN')
+    try {
+      for (const s of sessions) {
+        db.exec(
+          'INSERT OR IGNORE INTO hunt_sessions (id, session_date, created_at) VALUES (?, ?, ?)',
+          { bind: [s.id, s.session_date, s.created_at] }
+        )
+      }
+      for (const q of qsos) {
+        db.exec(
+          `INSERT OR IGNORE INTO qsos
+            (id, hunt_session_id, park_reference, callsign, frequency, band, mode,
+             rst_sent, rst_received, timestamp, created_at, synced)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+          {
+            bind: [q.id, q.hunt_session_id, q.park_reference, q.callsign,
+                   q.frequency, q.band, q.mode, q.rst_sent, q.rst_received,
+                   q.timestamp, q.created_at],
+          }
+        )
+      }
+      db.exec('COMMIT')
+    } catch (e) {
+      db.exec('ROLLBACK')
+      throw e
+    }
+  }
 }
 
 Comlink.expose(new DbWorker())

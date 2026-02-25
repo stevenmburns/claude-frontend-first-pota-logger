@@ -83,6 +83,35 @@ export async function fetchWorkedParks(url: string, key: string): Promise<Set<st
   }
 }
 
+export async function pullAllFromSupabase(): Promise<void> {
+  if (!supabase) return
+  try {
+    const { data: sessions, error: sErr } = await supabase
+      .from('hunt_sessions')
+      .select('*')
+    if (sErr || !sessions) return
+
+    const allQsos: Omit<Qso, 'synced'>[] = []
+    const PAGE = 1000
+    let from = 0
+    while (true) {
+      const { data, error } = await supabase
+        .from('qsos')
+        .select('*')
+        .range(from, from + PAGE - 1)
+      if (error || !data || data.length === 0) break
+      allQsos.push(...data)
+      if (data.length < PAGE) break
+      from += PAGE
+    }
+
+    const db = await getDb()
+    await db.upsertQsosFromRemote(sessions, allQsos)
+  } catch {
+    // silently ignore
+  }
+}
+
 export async function syncNewQso(qso: Qso, session: HuntSession): Promise<void> {
   if (!supabase) return
   try {

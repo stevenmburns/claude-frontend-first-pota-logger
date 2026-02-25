@@ -5,7 +5,7 @@ import { useQsos } from './hooks/useQsos'
 import { useSpots } from './hooks/useSpots'
 import { SetupPrompt } from './components/SetupPrompt'
 import { AppShell } from './components/AppShell'
-import { initSupabase, pushUnsyncedQsos, fetchWorkedParks } from './services/supabaseSync'
+import { initSupabase, pushUnsyncedQsos, pullAllFromSupabase, fetchWorkedParks } from './services/supabaseSync'
 
 export default function App() {
   const { settings, updateSettings } = useSettings()
@@ -18,6 +18,7 @@ export default function App() {
   useEffect(() => {
     initSupabase(settings.supabaseUrl, settings.supabaseKey)
     pushUnsyncedQsos()
+    pullAllFromSupabase()
     fetchWorkedParks(settings.supabaseUrl, settings.supabaseKey).then(setWorkedParks)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.supabaseUrl, settings.supabaseKey])

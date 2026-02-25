@@ -5,7 +5,7 @@ import { freqMhzToBand, freqKhzToBand } from '../utils/bandMap'
 import { defaultRst } from '../utils/rstDefaults'
 import { useParkLookup } from '../hooks/useParkLookup'
 import type { AnnotatedSpot } from '../hooks/useSpots'
-import type { HuntSession } from '../db/types'
+import type { HuntSession, Qso } from '../db/types'
 import { syncNewQso } from '../services/supabaseSync'
 
 const MODES = ['SSB', 'CW', 'FT8', 'FT4', 'AM', 'FM', 'RTTY', 'PSK31']
@@ -48,8 +48,35 @@ export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [callsignHistory, setCallsignHistory] = useState<Qso[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
 
   const { park } = useParkLookup(form.parkReference)
+
+  // Look up previous QSOs for the callsign being entered
+  useEffect(() => {
+    const callsign = form.callsign.trim().toUpperCase()
+    if (!callsign) {
+      setCallsignHistory([])
+      return
+    }
+    setHistoryLoading(true)
+    const timer = setTimeout(async () => {
+      try {
+        const db = await getDb()
+        const history = await db.getQsosByCallsign(callsign)
+        setCallsignHistory(history)
+      } catch {
+        setCallsignHistory([])
+      } finally {
+        setHistoryLoading(false)
+      }
+    }, 400)
+    return () => {
+      clearTimeout(timer)
+      setHistoryLoading(false)
+    }
+  }, [form.callsign])
 
   // Prefill from selected spot
   // POTA API returns frequency in kHz; form stores MHz for ADIF compatibility
@@ -121,6 +148,7 @@ export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
 
       syncNewQso({ ...qso, synced: 0 }, session)
       setForm(emptyForm())
+      setCallsignHistory([])
       setSuccess(true)
       setTimeout(() => setSuccess(false), 2000)
       onQsoLogged()
@@ -158,6 +186,38 @@ export function QsoForm({ session, selectedSpot, onQsoLogged }: QsoFormProps) {
           />
         </div>
       </div>
+
+      {form.callsign.trim() && (
+        <div style={{
+          background: '#1e1e2e', border: '1px solid #45475a', borderRadius: 4,
+          padding: '0.4rem 0.6rem', fontSize: '0.75rem',
+        }}>
+          {historyLoading ? (
+            <span style={{ color: '#a6adc8' }}>Looking up {form.callsign.trim().toUpperCase()}…</span>
+          ) : callsignHistory.length === 0 ? (
+            <span style={{ color: '#6c7086' }}>No previous QSOs with {form.callsign.trim().toUpperCase()}</span>
+          ) : (
+            <>
+              <div style={{ color: '#a6adc8', marginBottom: '0.3rem' }}>
+                Previous QSOs with <span style={{ color: '#89b4fa' }}>{form.callsign.trim().toUpperCase()}</span>
+                {' '}({callsignHistory.length})
+              </div>
+              <div style={{ maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                {callsignHistory.map(q => (
+                  <div key={q.id} style={{ display: 'flex', gap: '0.6rem', color: '#cdd6f4' }}>
+                    <span style={{ color: '#6c7086', minWidth: '5rem' }}>
+                      {new Date(q.timestamp).toLocaleDateString()}
+                    </span>
+                    <span style={{ color: '#cba6f7' }}>{q.park_reference}</span>
+                    <span style={{ color: '#94e2d5' }}>{q.band}</span>
+                    <span style={{ color: '#89dceb' }}>{q.mode}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
         <div>
