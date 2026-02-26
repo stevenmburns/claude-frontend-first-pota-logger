@@ -7,6 +7,7 @@ import type { AnnotatedSpot } from '../hooks/useSpots'
 import type { Qso, HuntSession } from '../db/types'
 import type { Settings } from '../hooks/useSettings'
 import { downloadAdif } from '../services/adifExport'
+import { setFrequency } from '../services/flrig'
 
 interface AppShellProps {
   session: HuntSession
@@ -91,7 +92,15 @@ export function AppShell({
             spots={spots}
             loading={spotsLoading}
             error={spotsError}
-            onSelectSpot={spot => setSelectedSpot(spot)}
+            onSelectSpot={spot => {
+              setSelectedSpot(spot)
+              if (settings.flrigEnabled && spot.frequency) {
+                const freqKhz = parseFloat(spot.frequency)
+                if (!isNaN(freqKhz)) {
+                  setFrequency(freqKhz, settings.flrigProxyPort).catch(() => {})
+                }
+              }
+            }}
             onRefresh={onRefreshSpots}
           />
         </div>

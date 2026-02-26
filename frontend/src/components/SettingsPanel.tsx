@@ -26,6 +26,8 @@ export function SettingsPanel({ settings, onUpdate, onClose }: SettingsPanelProp
       operatorCallsign: form.operatorCallsign.trim().toUpperCase(),
       supabaseUrl: form.supabaseUrl.trim(),
       supabaseKey: form.supabaseKey.trim(),
+      flrigEnabled: form.flrigEnabled,
+      flrigProxyPort: form.flrigProxyPort,
     })
     onClose()
   }
@@ -69,6 +71,32 @@ export function SettingsPanel({ settings, onUpdate, onClose }: SettingsPanelProp
               onChange={e => setForm(f => ({ ...f, supabaseKey: e.target.value }))}
               placeholder="eyJ..."
             />
+          </div>
+          <div>
+            <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={form.flrigEnabled}
+                onChange={e => setForm(f => ({ ...f, flrigEnabled: e.target.checked }))}
+              />
+              Enable flrig radio control
+            </label>
+            {form.flrigEnabled && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <label style={labelStyle}>Proxy port</label>
+                <input
+                  style={{ ...inputStyle, width: 100 }}
+                  type="number"
+                  value={form.flrigProxyPort}
+                  onChange={e => setForm(f => ({ ...f, flrigProxyPort: parseInt(e.target.value, 10) || 12346 }))}
+                  min={1024}
+                  max={65535}
+                />
+                <div style={{ marginTop: '0.3rem', color: '#6c7086', fontSize: '0.75rem' }}>
+                  Run <code>npm run flrig-proxy</code> from the project root
+                </div>
+              </div>
+            )}
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
             <button

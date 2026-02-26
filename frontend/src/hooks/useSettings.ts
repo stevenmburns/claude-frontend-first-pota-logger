@@ -4,6 +4,8 @@ export interface Settings {
   operatorCallsign: string
   supabaseUrl: string
   supabaseKey: string
+  flrigEnabled: boolean
+  flrigProxyPort: number
 }
 
 const STORAGE_KEY = 'pota-logger-settings'
@@ -12,6 +14,8 @@ const DEFAULTS: Settings = {
   operatorCallsign: '',
   supabaseUrl: '',
   supabaseKey: '',
+  flrigEnabled: false,
+  flrigProxyPort: 12346,
 }
 
 function loadSettings(): Settings {
