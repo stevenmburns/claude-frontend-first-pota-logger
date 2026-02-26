@@ -1,0 +1,8 @@
+{
+  "name": "pota-logger",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "flrig-proxy": "node flrig-proxy.js"
+  }
+}
