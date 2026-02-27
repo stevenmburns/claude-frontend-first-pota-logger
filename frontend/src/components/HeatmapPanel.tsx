@@ -66,8 +66,8 @@ export function HeatmapPanel() {
       <ActivityCalendar
         data={activities}
         theme={{
-          light: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
-          dark: ['#161b22', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
+          light: ['#ebedf0', '#216e39', '#30a14e', '#40c463', '#9be9a8'],
+          dark: ['#161b22', '#216e39', '#30a14e', '#40c463', '#9be9a8'],
         }}
         colorScheme="dark"
         showWeekdayLabels
