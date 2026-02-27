@@ -37,12 +37,12 @@ export function QsoTable({ qsos, onDeleted }: QsoTableProps) {
         <thead>
           <tr>
             <th style={th}>Time (UTC)</th>
-            <th style={th}>Callsign</th>
-            <th style={th}>Park</th>
-            <th style={th}>Freq</th>
             <th style={th}>Band</th>
             <th style={th}>Mode</th>
+            <th style={th}>Freq</th>
+            <th style={th}>Callsign</th>
             <th style={th}>RST S/R</th>
+            <th style={th}>Park</th>
             <th style={th}></th>
           </tr>
         </thead>
@@ -50,12 +50,12 @@ export function QsoTable({ qsos, onDeleted }: QsoTableProps) {
           {qsos.map(q => (
             <tr key={q.id}>
               <td style={{ ...td, color: '#a6adc8' }}>{utcTime(q.timestamp)}</td>
-              <td style={{ ...td, color: '#89b4fa', fontWeight: 600 }}>{q.callsign}</td>
-              <td style={{ ...td }}>{q.park_reference}</td>
-              <td style={{ ...td, color: '#f9e2af' }}>{q.frequency}</td>
               <td style={{ ...td, color: '#cba6f7' }}>{q.band}</td>
               <td style={{ ...td, color: '#94e2d5' }}>{q.mode}</td>
+              <td style={{ ...td, color: '#f9e2af' }}>{q.frequency}</td>
+              <td style={{ ...td, color: '#89b4fa', fontWeight: 600 }}>{q.callsign}</td>
               <td style={{ ...td }}>{q.rst_sent}/{q.rst_received}</td>
+              <td style={{ ...td }}>{q.park_reference}</td>
               <td style={{ ...td }}>
                 <button
                   onClick={() => handleDelete(q.id)}
