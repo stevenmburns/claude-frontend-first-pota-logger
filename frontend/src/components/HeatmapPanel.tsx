@@ -80,7 +80,7 @@ const THEME = {
   dark: ['#161b22', '#216e39', '#30a14e', '#40c463', '#9be9a8'],
 }
 
-function YearlyCalendar({ activities }: { activities: Activity[] }) {
+function YearlyCalendar({ activities, totalCountLabel }: { activities: Activity[], totalCountLabel: string }) {
   const years = splitByYear(activities)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -93,6 +93,7 @@ function YearlyCalendar({ activities }: { activities: Activity[] }) {
             colorScheme="dark"
             showWeekdayLabels
             showMonthLabels
+            labels={{ totalCount: `{{count}} ${totalCountLabel}` }}
           />
         </div>
       ))}
@@ -123,19 +124,19 @@ export function HeatmapPanel() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'row', gap: '3rem', alignItems: 'flex-start' }}>
       <section>
         <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.1rem', color: '#cba6f7' }}>QSO Activity</h2>
         {qsoActivities.length === 0
           ? <div style={{ color: '#a6adc8' }}>No QSO history found.</div>
-          : <YearlyCalendar activities={qsoActivities} />}
+          : <YearlyCalendar activities={qsoActivities} totalCountLabel="QSOs" />}
       </section>
 
       <section>
         <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.1rem', color: '#cba6f7' }}>New Parks Hunted</h2>
         {newParkActivities.length === 0
           ? <div style={{ color: '#a6adc8' }}>No park history found.</div>
-          : <YearlyCalendar activities={newParkActivities} />}
+          : <YearlyCalendar activities={newParkActivities} totalCountLabel="New Parks" />}
       </section>
     </div>
   )
