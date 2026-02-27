@@ -4,7 +4,7 @@ import { getDb } from '../db/db.client'
 
 type Activity = { date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }
 
-function countToLevel(count: number): 0 | 1 | 2 | 3 | 4 {
+function qsoCountToLevel(count: number): 0 | 1 | 2 | 3 | 4 {
   if (count === 0) return 0
   if (count <= 3) return 1
   if (count <= 9) return 2
@@ -12,7 +12,18 @@ function countToLevel(count: number): 0 | 1 | 2 | 3 | 4 {
   return 4
 }
 
-function buildActivityData(rows: { session_date: string; count: number }[]): Activity[] {
+function newParkCountToLevel(count: number): 0 | 1 | 2 | 3 | 4 {
+  if (count === 0) return 0
+  if (count === 1) return 1
+  if (count === 2) return 2
+  if (count === 3) return 3
+  return 4
+}
+
+function buildActivityData(
+  rows: { session_date: string; count: number }[],
+  toLevel: (count: number) => 0 | 1 | 2 | 3 | 4
+): Activity[] {
   if (rows.length === 0) return []
 
   const countByDate = new Map<string, number>()
@@ -30,7 +41,7 @@ function buildActivityData(rows: { session_date: string; count: number }[]): Act
   while (cursor <= end) {
     const date = cursor.toISOString().slice(0, 10)
     const count = countByDate.get(date) ?? 0
-    activities.push({ date, count, level: countToLevel(count) })
+    activities.push({ date, count, level: toLevel(count) })
     cursor.setDate(cursor.getDate() + 1)
   }
 
@@ -69,48 +80,64 @@ const THEME = {
   dark: ['#161b22', '#216e39', '#30a14e', '#40c463', '#9be9a8'],
 }
 
+function YearlyCalendar({ activities, totalCountLabel }: { activities: Activity[], totalCountLabel: string }) {
+  const years = splitByYear(activities)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      {years.map(([year, data]) => (
+        <div key={year}>
+          <div style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: '#a6adc8' }}>{year}</div>
+          <ActivityCalendar
+            data={data}
+            theme={THEME}
+            colorScheme="dark"
+            showWeekdayLabels
+            showMonthLabels
+            labels={{ totalCount: `{{count}} ${totalCountLabel}` }}
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function HeatmapPanel() {
-  const [activities, setActivities] = useState<Activity[] | null>(null)
+  const [qsoActivities, setQsoActivities] = useState<Activity[] | null>(null)
+  const [newParkActivities, setNewParkActivities] = useState<Activity[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    getDb()
-      .then(db => db.getQsoCountsByDate())
-      .then(rows => setActivities(buildActivityData(rows)))
-      .catch(e => setError(String(e)))
+    getDb().then(db =>
+      Promise.all([db.getQsoCountsByDate(), db.getNewParkCountsByDate()])
+    ).then(([qsoRows, parkRows]) => {
+      setQsoActivities(buildActivityData(qsoRows, qsoCountToLevel))
+      setNewParkActivities(buildActivityData(parkRows, newParkCountToLevel))
+    }).catch(e => setError(String(e)))
   }, [])
 
   if (error) {
     return <div style={{ color: '#f38ba8' }}>Error loading heatmap: {error}</div>
   }
 
-  if (activities === null) {
+  if (qsoActivities === null || newParkActivities === null) {
     return <div style={{ color: '#a6adc8' }}>Loading…</div>
   }
 
-  if (activities.length === 0) {
-    return <div style={{ color: '#a6adc8' }}>No QSO history found.</div>
-  }
-
-  const years = splitByYear(activities)
-
   return (
-    <div>
-      <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.1rem', color: '#cba6f7' }}>QSO Activity</h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        {years.map(([year, data]) => (
-          <div key={year}>
-            <div style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: '#a6adc8' }}>{year}</div>
-            <ActivityCalendar
-              data={data}
-              theme={THEME}
-              colorScheme="dark"
-              showWeekdayLabels
-              showMonthLabels
-            />
-          </div>
-        ))}
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'row', gap: '3rem', alignItems: 'flex-start' }}>
+      <section>
+        <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.1rem', color: '#cba6f7' }}>QSO Activity</h2>
+        {qsoActivities.length === 0
+          ? <div style={{ color: '#a6adc8' }}>No QSO history found.</div>
+          : <YearlyCalendar activities={qsoActivities} totalCountLabel="QSOs" />}
+      </section>
+
+      <section>
+        <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.1rem', color: '#cba6f7' }}>New Parks Hunted</h2>
+        {newParkActivities.length === 0
+          ? <div style={{ color: '#a6adc8' }}>No park history found.</div>
+          : <YearlyCalendar activities={newParkActivities} totalCountLabel="New Parks" />}
+      </section>
     </div>
   )
 }

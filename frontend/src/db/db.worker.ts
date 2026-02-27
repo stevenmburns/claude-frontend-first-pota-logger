@@ -127,6 +127,22 @@ export class DbWorker {
     ) as { session_date: string; count: number }[]
   }
 
+  async getNewParkCountsByDate(): Promise<{ session_date: string; count: number }[]> {
+    return db.selectObjects(
+      `SELECT first_date as session_date, COUNT(*) as count
+       FROM (
+         SELECT q.park_reference, MIN(hs.session_date) as first_date
+         FROM qsos q
+         JOIN hunt_sessions hs ON q.hunt_session_id = hs.id
+         WHERE q.park_reference IS NOT NULL
+         GROUP BY q.park_reference
+       )
+       GROUP BY first_date
+       ORDER BY first_date`,
+      []
+    ) as { session_date: string; count: number }[]
+  }
+
   async upsertQsosFromRemote(sessions: HuntSession[], qsos: Omit<Qso, 'synced'>[]): Promise<void> {
     db.exec('BEGIN')
     try {
