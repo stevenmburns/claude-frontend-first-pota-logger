@@ -116,6 +116,17 @@ export class DbWorker {
     return rows.map(r => r.park_reference)
   }
 
+  async getQsoCountsByDate(): Promise<{ session_date: string; count: number }[]> {
+    return db.selectObjects(
+      `SELECT hs.session_date, COUNT(q.id) as count
+       FROM hunt_sessions hs
+       LEFT JOIN qsos q ON q.hunt_session_id = hs.id
+       GROUP BY hs.session_date
+       ORDER BY hs.session_date`,
+      []
+    ) as { session_date: string; count: number }[]
+  }
+
   async upsertQsosFromRemote(sessions: HuntSession[], qsos: Omit<Qso, 'synced'>[]): Promise<void> {
     db.exec('BEGIN')
     try {

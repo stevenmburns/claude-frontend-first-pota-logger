@@ -3,6 +3,7 @@ import { SpotsPanel } from './SpotsPanel'
 import { QsoForm } from './QsoForm'
 import { QsoTable } from './QsoTable'
 import { SettingsPanel } from './SettingsPanel'
+import { HeatmapPanel } from './HeatmapPanel'
 import type { AnnotatedSpot } from '../hooks/useSpots'
 import type { Qso, HuntSession } from '../db/types'
 import type { Settings } from '../hooks/useSettings'
@@ -27,6 +28,7 @@ export function AppShell({
   session, callsign, spots, spotsLoading, spotsError, onRefreshSpots,
   qsos, onQsoLogged, onQsoDeleted, settings, onUpdateSettings,
 }: AppShellProps) {
+  const [activePage, setActivePage] = useState<'log' | 'heatmap'>('log')
   const [selectedSpot, setSelectedSpot] = useState<AnnotatedSpot | null>(null)
   const [showSettings, setShowSettings] = useState(false)
   const [splitPct, setSplitPct] = useState(66.7)
@@ -62,6 +64,24 @@ export function AppShell({
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <button
+            onClick={() => setActivePage('log')}
+            style={{
+              background: activePage === 'log' ? '#45475a' : '#313244', border: '1px solid #555', borderRadius: 4,
+              color: '#cdd6f4', padding: '0.3rem 0.7rem', cursor: 'pointer', fontSize: '0.85rem',
+            }}
+          >
+            Log
+          </button>
+          <button
+            onClick={() => setActivePage('heatmap')}
+            style={{
+              background: activePage === 'heatmap' ? '#45475a' : '#313244', border: '1px solid #555', borderRadius: 4,
+              color: '#cdd6f4', padding: '0.3rem 0.7rem', cursor: 'pointer', fontSize: '0.85rem',
+            }}
+          >
+            Heatmap
+          </button>
+          <button
             onClick={() => downloadAdif(qsos)}
             disabled={qsos.length === 0}
             style={{
@@ -84,64 +104,72 @@ export function AppShell({
       </header>
 
       {/* Two-column body */}
-      <div ref={containerRef} style={{ flex: 1, display: 'grid', gridTemplateColumns: `${splitPct}% 4px 1fr`, overflow: 'hidden' }}>
-        {/* Left: Spots */}
-        <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '0.5rem' }}>
-          <h2 style={{ margin: '0 0 0.5rem', fontSize: '1rem', color: '#cba6f7' }}>Active Spots</h2>
-          <SpotsPanel
-            spots={spots}
-            loading={spotsLoading}
-            error={spotsError}
-            onSelectSpot={spot => {
-              setSelectedSpot(spot)
-              if (settings.flrigEnabled && spot.frequency) {
-                const freqKhz = parseFloat(spot.frequency)
-                if (!isNaN(freqKhz)) {
-                  setFrequency(freqKhz, settings.flrigProxyPort).catch(() => {})
+      {activePage === 'log' && (
+        <div ref={containerRef} style={{ flex: 1, display: 'grid', gridTemplateColumns: `${splitPct}% 4px 1fr`, overflow: 'hidden' }}>
+          {/* Left: Spots */}
+          <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '0.5rem' }}>
+            <h2 style={{ margin: '0 0 0.5rem', fontSize: '1rem', color: '#cba6f7' }}>Active Spots</h2>
+            <SpotsPanel
+              spots={spots}
+              loading={spotsLoading}
+              error={spotsError}
+              onSelectSpot={spot => {
+                setSelectedSpot(spot)
+                if (settings.flrigEnabled && spot.frequency) {
+                  const freqKhz = parseFloat(spot.frequency)
+                  if (!isNaN(freqKhz)) {
+                    setFrequency(freqKhz, settings.flrigProxyPort).catch(() => {})
+                  }
                 }
-              }
-            }}
-            onRefresh={onRefreshSpots}
-          />
-        </div>
-
-        {/* Draggable divider */}
-        <div
-          onMouseDown={onDividerMouseDown}
-          style={{
-            cursor: 'col-resize', background: '#333', width: 4,
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#585b70' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#333' }}
-        />
-
-        {/* Right: Log form + QSO table */}
-        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0.5rem' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <h2 style={{ margin: '0 0 0.6rem', fontSize: '1rem', color: '#cba6f7' }}>
-              Log QSO
-              {selectedSpot && (
-                <span style={{ color: '#a6adc8', fontWeight: 400, fontSize: '0.85rem', marginLeft: 8 }}>
-                  (from spot: {selectedSpot.activator})
-                </span>
-              )}
-            </h2>
-            <QsoForm
-              session={session}
-              selectedSpot={selectedSpot}
-              onQsoLogged={onQsoLogged}
+              }}
+              onRefresh={onRefreshSpots}
             />
           </div>
 
-          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ margin: '0 0 0.5rem', fontSize: '1rem', color: '#cba6f7' }}>
-              Today's QSOs ({qsos.length})
-            </h2>
-            <QsoTable qsos={qsos} onDeleted={onQsoDeleted} />
+          {/* Draggable divider */}
+          <div
+            onMouseDown={onDividerMouseDown}
+            style={{
+              cursor: 'col-resize', background: '#333', width: 4,
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#585b70' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#333' }}
+          />
+
+          {/* Right: Log form + QSO table */}
+          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0.5rem' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <h2 style={{ margin: '0 0 0.6rem', fontSize: '1rem', color: '#cba6f7' }}>
+                Log QSO
+                {selectedSpot && (
+                  <span style={{ color: '#a6adc8', fontWeight: 400, fontSize: '0.85rem', marginLeft: 8 }}>
+                    (from spot: {selectedSpot.activator})
+                  </span>
+                )}
+              </h2>
+              <QsoForm
+                session={session}
+                selectedSpot={selectedSpot}
+                onQsoLogged={onQsoLogged}
+              />
+            </div>
+
+            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <h2 style={{ margin: '0 0 0.5rem', fontSize: '1rem', color: '#cba6f7' }}>
+                Today's QSOs ({qsos.length})
+              </h2>
+              <QsoTable qsos={qsos} onDeleted={onQsoDeleted} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {activePage === 'heatmap' && (
+        <div style={{ flex: 1, overflow: 'auto', padding: '2rem' }}>
+          <HeatmapPanel />
+        </div>
+      )}
 
       {showSettings && (
         <SettingsPanel
