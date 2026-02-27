@@ -77,7 +77,7 @@ function splitByYear(activities: Activity[]): [number, Activity[]][] {
 }
 
 const THEME = {
-  light: ['#ebedf0', '#216e39', '#30a14e', '#40c463', '#9be9a8'],
+  light: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
   dark: ['#161b22', '#216e39', '#30a14e', '#40c463', '#9be9a8'],
 }
 
