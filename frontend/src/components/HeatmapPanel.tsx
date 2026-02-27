@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { ActivityCalendar } from 'react-activity-calendar'
 import { getDb } from '../db/db.client'
 
-type Activity = { date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }
+type HeatLevel = 0 | 1 | 2 | 3 | 4
+type Activity = { date: string; count: number; level: HeatLevel }
 
-function qsoCountToLevel(count: number): 0 | 1 | 2 | 3 | 4 {
+function qsoCountToLevel(count: number): HeatLevel {
   if (count === 0) return 0
   if (count <= 3) return 1
   if (count <= 9) return 2
@@ -12,7 +13,7 @@ function qsoCountToLevel(count: number): 0 | 1 | 2 | 3 | 4 {
   return 4
 }
 
-function newParkCountToLevel(count: number): 0 | 1 | 2 | 3 | 4 {
+function newParkCountToLevel(count: number): HeatLevel {
   if (count === 0) return 0
   if (count === 1) return 1
   if (count === 2) return 2
@@ -22,7 +23,7 @@ function newParkCountToLevel(count: number): 0 | 1 | 2 | 3 | 4 {
 
 function buildActivityData(
   rows: { session_date: string; count: number }[],
-  toLevel: (count: number) => 0 | 1 | 2 | 3 | 4
+  toLevel: (count: number) => HeatLevel
 ): Activity[] {
   if (rows.length === 0) return []
 
@@ -49,7 +50,7 @@ function buildActivityData(
 }
 
 function splitByYear(activities: Activity[]): [number, Activity[]][] {
-  const countByDate = new Map<string, { count: number; level: 0 | 1 | 2 | 3 | 4 }>()
+  const countByDate = new Map<string, { count: number; level: HeatLevel }>()
   for (const a of activities) {
     countByDate.set(a.date, { count: a.count, level: a.level })
   }
