@@ -37,6 +37,21 @@ function buildActivityData(rows: { session_date: string; count: number }[]): Act
   return activities
 }
 
+function splitByYear(activities: Activity[]): [number, Activity[]][] {
+  const byYear = new Map<number, Activity[]>()
+  for (const a of activities) {
+    const year = parseInt(a.date.slice(0, 4))
+    if (!byYear.has(year)) byYear.set(year, [])
+    byYear.get(year)!.push(a)
+  }
+  return [...byYear.entries()].sort((a, b) => b[0] - a[0])
+}
+
+const THEME = {
+  light: ['#ebedf0', '#216e39', '#30a14e', '#40c463', '#9be9a8'],
+  dark: ['#161b22', '#216e39', '#30a14e', '#40c463', '#9be9a8'],
+}
+
 export function HeatmapPanel() {
   const [activities, setActivities] = useState<Activity[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -60,18 +75,25 @@ export function HeatmapPanel() {
     return <div style={{ color: '#a6adc8' }}>No QSO history found.</div>
   }
 
+  const years = splitByYear(activities)
+
   return (
     <div>
       <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.1rem', color: '#cba6f7' }}>QSO Activity</h2>
-      <ActivityCalendar
-        data={activities}
-        theme={{
-          light: ['#ebedf0', '#216e39', '#30a14e', '#40c463', '#9be9a8'],
-          dark: ['#161b22', '#216e39', '#30a14e', '#40c463', '#9be9a8'],
-        }}
-        colorScheme="dark"
-        showWeekdayLabels
-      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {years.map(([year, data]) => (
+          <div key={year}>
+            <div style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: '#a6adc8' }}>{year}</div>
+            <ActivityCalendar
+              data={data}
+              theme={THEME}
+              colorScheme="dark"
+              showWeekdayLabels
+              showMonthLabels
+            />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
