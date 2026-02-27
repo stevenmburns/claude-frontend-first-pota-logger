@@ -30,6 +30,8 @@ export function AppShell({
 }: AppShellProps) {
   const [activePage, setActivePage] = useState<'log' | 'heatmap'>('log')
   const [selectedSpot, setSelectedSpot] = useState<AnnotatedSpot | null>(null)
+  const [bandFilter, setBandFilter] = useState('')
+  const [modeFilter, setModeFilter] = useState('')
   const [showSettings, setShowSettings] = useState(false)
   const [splitPct, setSplitPct] = useState(66.7)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -113,6 +115,10 @@ export function AppShell({
               spots={spots}
               loading={spotsLoading}
               error={spotsError}
+              bandFilter={bandFilter}
+              modeFilter={modeFilter}
+              onBandFilterChange={setBandFilter}
+              onModeFilterChange={setModeFilter}
               onSelectSpot={spot => {
                 setSelectedSpot(spot)
                 if (settings.flrigEnabled && spot.frequency) {

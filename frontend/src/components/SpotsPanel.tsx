@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { SpotsFilter } from './SpotsFilter'
 import { SpotsTable } from './SpotsTable'
 import type { AnnotatedSpot } from '../hooks/useSpots'
@@ -11,11 +10,13 @@ interface SpotsPanelProps {
   error: Error | null
   onSelectSpot: (spot: AnnotatedSpot) => void
   onRefresh: () => void
+  bandFilter: string
+  modeFilter: string
+  onBandFilterChange: (v: string) => void
+  onModeFilterChange: (v: string) => void
 }
 
-export function SpotsPanel({ spots, loading, error, onSelectSpot, onRefresh }: SpotsPanelProps) {
-  const [bandFilter, setBandFilter] = useState('')
-  const [modeFilter, setModeFilter] = useState('')
+export function SpotsPanel({ spots, loading, error, onSelectSpot, onRefresh, bandFilter, modeFilter, onBandFilterChange, onModeFilterChange }: SpotsPanelProps) {
 
   const filtered = sortSpots(spots.filter(s => {
     if (bandFilter && freqKhzToBand(parseFloat(s.frequency)) !== bandFilter) return false
@@ -28,7 +29,7 @@ export function SpotsPanel({ spots, loading, error, onSelectSpot, onRefresh }: S
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0.5rem' }}>
         <SpotsFilter
           band={bandFilter} mode={modeFilter}
-          onBandChange={setBandFilter} onModeChange={setModeFilter}
+          onBandChange={onBandFilterChange} onModeChange={onModeFilterChange}
         />
         <button
           onClick={onRefresh}

@@ -27,12 +27,12 @@ export function SpotsTable({ spots, onSelectSpot }: SpotsTableProps) {
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            <th style={th}>Activator</th>
-            <th style={{ ...th, width: '1.2rem', padding: '0.4rem 0.2rem' }}></th>
-            <th style={th}>Park</th>
-            <th style={th}>Freq</th>
             <th style={th}>Band</th>
             <th style={th}>Mode</th>
+            <th style={th}>Freq</th>
+            <th style={{ ...th, width: '1.2rem', padding: '0.4rem 0.2rem' }}></th>
+            <th style={th}>Park</th>
+            <th style={th}>Activator</th>
             <th style={th}>Time (UTC)</th>
             <th style={th}>Comments</th>
           </tr>
@@ -54,9 +54,9 @@ export function SpotsTable({ spots, onSelectSpot }: SpotsTableProps) {
                   (e.currentTarget as HTMLElement).style.background = rowBg ?? ''
                 }}
               >
-                <td style={{ ...td, color: spot.hunted ? '#a6e3a1' : '#89b4fa', fontWeight: 600 }}>
-                  {spot.hunted ? '✓ ' : ''}{spot.activator}
-                </td>
+                <td style={{ ...td, color: '#cba6f7' }}>{band}</td>
+                <td style={{ ...td, color: '#94e2d5' }}>{spot.mode}</td>
+                <td style={{ ...td, color: '#f9e2af' }}>{spot.frequency}</td>
                 <td style={{ ...td, padding: '0.35rem 0.2rem', textAlign: 'center', color: '#f9e2af' }}>
                   {spot.newPark && !spot.hunted ? '★' : ''}
                 </td>
@@ -68,9 +68,9 @@ export function SpotsTable({ spots, onSelectSpot }: SpotsTableProps) {
                     {spot.parkName}
                   </span>
                 </td>
-                <td style={{ ...td, color: '#f9e2af' }}>{spot.frequency}</td>
-                <td style={{ ...td, color: '#cba6f7' }}>{band}</td>
-                <td style={{ ...td, color: '#94e2d5' }}>{spot.mode}</td>
+                <td style={{ ...td, color: spot.hunted ? '#a6e3a1' : '#89b4fa', fontWeight: 600 }}>
+                  {spot.hunted ? '✓ ' : ''}{spot.activator}
+                </td>
                 <td style={{ ...td, color: '#a6adc8', fontSize: '0.78rem' }}>
                   {formatSpotTimeUtc(spot.spotTime)}
                 </td>
