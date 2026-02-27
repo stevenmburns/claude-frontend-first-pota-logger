@@ -38,13 +38,30 @@ function buildActivityData(rows: { session_date: string; count: number }[]): Act
 }
 
 function splitByYear(activities: Activity[]): [number, Activity[]][] {
-  const byYear = new Map<number, Activity[]>()
+  const countByDate = new Map<string, { count: number; level: 0 | 1 | 2 | 3 | 4 }>()
   for (const a of activities) {
-    const year = parseInt(a.date.slice(0, 4))
-    if (!byYear.has(year)) byYear.set(year, [])
-    byYear.get(year)!.push(a)
+    countByDate.set(a.date, { count: a.count, level: a.level })
   }
-  return [...byYear.entries()].sort((a, b) => b[0] - a[0])
+
+  const years = [...new Set(activities.map(a => parseInt(a.date.slice(0, 4))))]
+  const today = new Date().toISOString().slice(0, 10)
+  const currentYear = new Date().getFullYear()
+
+  return years
+    .sort((a, b) => b - a)
+    .map(year => {
+      const start = new Date(`${year}-01-01`)
+      const end = year === currentYear ? new Date(today) : new Date(`${year}-12-31`)
+      const yearData: Activity[] = []
+      const cursor = new Date(start)
+      while (cursor <= end) {
+        const date = cursor.toISOString().slice(0, 10)
+        const existing = countByDate.get(date)
+        yearData.push(existing ? { date, ...existing } : { date, count: 0, level: 0 })
+        cursor.setDate(cursor.getDate() + 1)
+      }
+      return [year, yearData] as [number, Activity[]]
+    })
 }
 
 const THEME = {
