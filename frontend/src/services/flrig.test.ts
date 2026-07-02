@@ -31,10 +31,14 @@ describe('setFrequency', () => {
     expect(url).toBe('http://localhost:9999')
   })
 
-  it('calls rig.set_vfo', async () => {
+  it('sets both the main (VFO A) and sub (VFO B)', async () => {
     await setFrequency(14074, 12346)
 
-    const [, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0]
-    expect(init.body).toContain('<methodName>rig.set_vfo</methodName>')
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls
+    expect(calls).toHaveLength(2)
+    expect(calls[0][1].body).toContain('<methodName>rig.set_vfoA</methodName>')
+    expect(calls[0][1].body).toContain('<double>14074000</double>')
+    expect(calls[1][1].body).toContain('<methodName>rig.set_vfoB</methodName>')
+    expect(calls[1][1].body).toContain('<double>14074000</double>')
   })
 })
